@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/nmchenry/go-video-cli/cmd"
 
 func main() {
-	fmt.Println("Hello World!")
+	cmd.Execute()
 }

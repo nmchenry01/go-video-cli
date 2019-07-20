@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -31,10 +32,11 @@ var encrypt = &cobra.Command{
 
 		// Read in file
 		log.Info("Reading input file")
-		data, readErr := ioutil.ReadFile(filepath)
-		if readErr != nil {
-			log.Panic("There was an issue reading the file")
-			panic(readErr.Error())
+		data, err := ioutil.ReadFile(filepath)
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Fatal("There was an issue reading the file")
 		}
 
 		// Hash the password to ensure 32 bytes
@@ -48,11 +50,12 @@ var encrypt = &cobra.Command{
 		outputPath := fmt.Sprintf("%s.encrypted", filepath)
 
 		// Write the data out to a file
-		log.Info(fmt.Sprintf("Outputting file to your current directory as %s", outputPath))
-		writeErr := ioutil.WriteFile(outputPath, cipherText, 0777)
-		if writeErr != nil {
-			log.Panic("There was an issue writing the encrypted file")
-			panic(writeErr.Error())
+		log.Info(fmt.Sprintf("Outputting file to your directory as %s", outputPath))
+		err = ioutil.WriteFile(outputPath, cipherText, 0777)
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Fatal("There was an issue writing the encrypted file")
 		}
 
 		log.Info("Success!")
@@ -69,14 +72,16 @@ func createCipherText(data []byte, passphrase string) []byte {
 	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		log.Panic("There was an issue creating the GCM cipher")
-		panic(err.Error())
+		log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal("There was an issue creating the GCM cipher")
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		log.Panic("There was an issue creating the nonce")
-		panic(err.Error())
+		log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal("There was an issue reading the nonce")
 	}
 
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)

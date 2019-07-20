@@ -46,13 +46,9 @@ var encrypt = &cobra.Command{
 			}).Fatal("There was an issue reading the file")
 		}
 
-		// Hash the password to ensure 32 bytes
-		log.Info("Hashing password")
-		hashedPassword := createHash(password)
-
-		// Encrypt the data
+		// Encrypting the data
 		log.Info("Encrypting File")
-		cipherText := createCipherText(&data, hashedPassword)
+		cipherText := createCipherText(&data, password)
 
 		outputPath := fmt.Sprintf("%s.encrypted", filepath)
 
@@ -76,7 +72,15 @@ func createHash(key string) string {
 }
 
 func createCipherText(data *[]byte, passphrase string) []byte {
-	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
+	key := []byte(createHash(passphrase))
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal("There was an issue creating the cipher block")
+	}
+
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		log.WithFields(logrus.Fields{

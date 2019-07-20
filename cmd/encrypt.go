@@ -6,9 +6,11 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"io/ioutil"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -28,22 +30,30 @@ var encrypt = &cobra.Command{
 		password := args[1]
 
 		// Read in file
+		log.Info("Reading input file")
 		data, readErr := ioutil.ReadFile(filepath)
 		if readErr != nil {
 			panic(readErr.Error())
 		}
 
 		// Hash the password to ensure 32 bytes
+		log.Info("Hashing password")
 		hashedPassword := createHash(password)
 
 		// Encrypt the data
+		log.Info("Encrypting File")
 		cipherText := createCipherText(data, hashedPassword)
 
+		outputPath := fmt.Sprintf("%s.encrypted", filepath)
+
 		// Write the data out to a file
-		writeErr := ioutil.WriteFile("encrypted", cipherText, 0777)
+		log.Info(fmt.Sprintf("Outputting file to your current directory as %s", outputPath))
+		writeErr := ioutil.WriteFile(outputPath, cipherText, 0777)
 		if writeErr != nil {
 			panic(writeErr.Error())
 		}
+
+		log.Info("Success!")
 	},
 }
 

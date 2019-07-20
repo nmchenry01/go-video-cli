@@ -1,9 +1,13 @@
 package cmd
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -21,4 +25,18 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func check(err error, message string) {
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal(message)
+	}
+}
+
+func createHash(key string) string {
+	h := md5.New()
+	h.Write([]byte(key))
+	return hex.EncodeToString(h.Sum(nil))
 }

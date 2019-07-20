@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -81,12 +80,4 @@ func buildUploadInput(bucket string, key string, file *os.File) *s3manager.Uploa
 func uploadToS3(uploader *s3manager.Uploader, input *s3manager.UploadInput) {
 	_, err := uploader.Upload(input)
 	check(err, "There was an issue uploading the file to S3")
-}
-
-func check(err error, message string) {
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"error": err.Error(),
-		}).Fatal(message)
-	}
 }

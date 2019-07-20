@@ -14,12 +14,13 @@ import (
 
 func init() {
 	rootCmd.AddCommand(decrypt)
+	decrypt.SetUsageTemplate("Example Usage:\n" + "\tgo-video-cli decrypt [FILEPATH] [PASSWORD]\n")
 }
 
 var decrypt = &cobra.Command{
 	Use:   "decrypt",
 	Short: "Decrypt a file provided on the command line",
-	Long:  "Decrypt a file provided on the command line",
+	Long:  "Decrypt a file provided on the command line by providing a path the file and the password that was used to encrypt the file",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Arguments

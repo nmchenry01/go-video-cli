@@ -24,12 +24,14 @@ import (
 
 func init() {
 	rootCmd.AddCommand(encrypt)
+
+	encrypt.SetUsageTemplate("Example Usage:\n" + "\tgo-video-cli encrypt [FILEPATH] [PASSWORD]\n")
 }
 
 var encrypt = &cobra.Command{
 	Use:   "encrypt",
 	Short: "Encrypt a file provided on the command line",
-	Long:  "Encrypt a file provided on the command line",
+	Long:  "Encrypt a file provided on the command line by providing a path to the file and a password",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 

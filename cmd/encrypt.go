@@ -33,6 +33,7 @@ var encrypt = &cobra.Command{
 		log.Info("Reading input file")
 		data, readErr := ioutil.ReadFile(filepath)
 		if readErr != nil {
+			log.Panic("There was an issue reading the file")
 			panic(readErr.Error())
 		}
 
@@ -50,6 +51,7 @@ var encrypt = &cobra.Command{
 		log.Info(fmt.Sprintf("Outputting file to your current directory as %s", outputPath))
 		writeErr := ioutil.WriteFile(outputPath, cipherText, 0777)
 		if writeErr != nil {
+			log.Panic("There was an issue writing the encrypted file")
 			panic(writeErr.Error())
 		}
 
@@ -67,11 +69,13 @@ func createCipherText(data []byte, passphrase string) []byte {
 	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
+		log.Panic("There was an issue creating the GCM cipher")
 		panic(err.Error())
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		log.Panic("There was an issue creating the nonce")
 		panic(err.Error())
 	}
 

@@ -15,6 +15,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/*
+	TODO Better documentation around the usage
+	TODO Look in to more flags/validation options
+	TODO Write tests
+	TODO Benchmarking
+*/
+
 func init() {
 	rootCmd.AddCommand(encrypt)
 }
@@ -45,7 +52,7 @@ var encrypt = &cobra.Command{
 
 		// Encrypt the data
 		log.Info("Encrypting File")
-		cipherText := createCipherText(data, hashedPassword)
+		cipherText := createCipherText(&data, hashedPassword)
 
 		outputPath := fmt.Sprintf("%s.encrypted", filepath)
 
@@ -68,7 +75,7 @@ func createHash(key string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func createCipherText(data []byte, passphrase string) []byte {
+func createCipherText(data *[]byte, passphrase string) []byte {
 	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
@@ -84,6 +91,6 @@ func createCipherText(data []byte, passphrase string) []byte {
 		}).Fatal("There was an issue reading the nonce")
 	}
 
-	ciphertext := gcm.Seal(nonce, nonce, data, nil)
+	ciphertext := gcm.Seal(nonce, nonce, *data, nil)
 	return ciphertext
 }

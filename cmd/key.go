@@ -25,7 +25,7 @@ var genKey = &cobra.Command{
 		region := args[2]
 
 		// Create AWS Session
-		log.Info("Creating Session")
+		log.Info("Creating AWS Session")
 		session := createAWSSession(region)
 
 		// Hash the key
@@ -36,18 +36,17 @@ var genKey = &cobra.Command{
 		svc := secretsmanager.New(session)
 
 		// Generate Secret Input
-		log.Info("Building Secrets Manager Input")
-		input := buildSecretsInput(hashedKey, keyName)
+		input := buildPutSecretInput(hashedKey, keyName)
 
 		// Upload to Secrets Manager
-		log.Info("Upload to Secrets Manager")
-		uploadToSecretsManager(svc, input)
+		log.Info("Uploading Key to Secrets Manager")
+		putSecret(svc, input)
 
 		log.Info("Success!")
 	},
 }
 
-func buildSecretsInput(hashedKey string, keyName string) *secretsmanager.PutSecretValueInput {
+func buildPutSecretInput(hashedKey string, keyName string) *secretsmanager.PutSecretValueInput {
 	input := &secretsmanager.PutSecretValueInput{
 		SecretId:     aws.String(keyName),
 		SecretString: aws.String(hashedKey),
@@ -56,7 +55,7 @@ func buildSecretsInput(hashedKey string, keyName string) *secretsmanager.PutSecr
 	return input
 }
 
-func uploadToSecretsManager(svc *secretsmanager.SecretsManager, input *secretsmanager.PutSecretValueInput) {
+func putSecret(svc *secretsmanager.SecretsManager, input *secretsmanager.PutSecretValueInput) {
 	_, err := svc.PutSecretValue(input)
 	check(err, "There was an issue uploading to Secrets Manager")
 }

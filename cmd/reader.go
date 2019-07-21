@@ -34,7 +34,3 @@ func (r *customReader) ReadAt(p []byte, off int64) (int, error) {
 func (r *customReader) Seek(offset int64, whence int) (int64, error) {
 	return r.fp.Seek(offset, whence)
 }
-
-func convertBytesToMb(bytes int) int {
-	return bytes / 1024 / 1024
-}

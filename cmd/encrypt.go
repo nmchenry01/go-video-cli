@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -22,19 +23,34 @@ import (
 func init() {
 	rootCmd.AddCommand(encrypt)
 
-	encrypt.SetUsageTemplate("Example Usage:\n" + "\tgo-video-cli encrypt [FILEPATH] [PASSWORD]\n")
+	encrypt.SetUsageTemplate("Example Usage:\n" + "\tgo-video-cli encrypt [FILEPATH] [KEYNAME] [REGION] \n")
 }
 
 var encrypt = &cobra.Command{
 	Use:   "encrypt",
 	Short: "Encrypt a file provided on the command line",
-	Long:  "Encrypt a file provided on the command line by providing a path to the file and a password",
-	Args:  cobra.ExactArgs(2),
+	Long:  "Encrypt a file provided on the command line by providing a path to the file, the name of the key stored in AWS Secrets Manager, and the AWS region where the key is stored",
+	Args:  cobra.ExactArgs(3),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Arguments
 		filepath := args[0]
-		password := args[1]
+		keyName := args[1]
+		region := args[2]
+
+		// Create AWS Session
+		log.Info("Creating AWS Session")
+		session := createAWSSession(region)
+
+		// Create Secrets Manager service
+		svc := secretsmanager.New(session)
+
+		// Build Get Secrets Value input
+		input := buildGetSecretInput(keyName)
+
+		// Get Secrets Value
+		log.Info("Retrieving Secret Key")
+		key := getSecret(svc, input)
 
 		// Read in file
 		log.Info("Reading input file")
@@ -43,7 +59,7 @@ var encrypt = &cobra.Command{
 
 		// Encrypting the data
 		log.Info("Encrypting File")
-		cipherText := createCipherText(&data, password)
+		cipherText := createCipherText(&data, key)
 
 		outputPath := fmt.Sprintf("%s.encrypted", filepath)
 
@@ -56,10 +72,10 @@ var encrypt = &cobra.Command{
 	},
 }
 
-func createCipherText(data *[]byte, passphrase string) []byte {
-	key := []byte(createHash(passphrase))
+func createCipherText(data *[]byte, key string) []byte {
+	byteKey := []byte(key)
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher(byteKey)
 	check(err, "There was an issue creating the cipher block")
 
 	gcm, err := cipher.NewGCM(block)

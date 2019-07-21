@@ -33,7 +33,7 @@ var upload = &cobra.Command{
 		partSize := int64(5) // Upload in 5mb chunks
 
 		// Create AWS Session
-		log.Info("Creating Session")
+		log.Info("Creating AWS Session")
 		session := createAWSSession(region)
 
 		// Load File to upload

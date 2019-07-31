@@ -6,12 +6,17 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	encrypt "github.com/nmchenry/go-video-cli/cmd/encrypt"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 var author string
+
+func init() {
+	rootCmd.AddCommand(encrypt.Encrypt)
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "go-video-cli",

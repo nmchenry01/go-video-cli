@@ -1,12 +1,11 @@
 package cmd
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/nmchenry/go-video-cli/cmd/decrypt"
+	"github.com/nmchenry/go-video-cli/cmd/key"
+
 	"github.com/nmchenry/go-video-cli/cmd/encrypt"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -18,6 +17,7 @@ var author string
 func init() {
 	rootCmd.AddCommand(encrypt.Encrypt)
 	rootCmd.AddCommand(decrypt.Decrypt)
+	rootCmd.AddCommand(key.GenKey)
 }
 
 var rootCmd = &cobra.Command{
@@ -38,12 +38,6 @@ func check(err error, message string) {
 			"error": err.Error(),
 		}).Fatal(message)
 	}
-}
-
-func createHash(key string) string {
-	h := md5.New()
-	h.Write([]byte(key))
-	return hex.EncodeToString(h.Sum(nil))
 }
 
 func buildGetSecretInput(keyName string) *secretsmanager.GetSecretValueInput {

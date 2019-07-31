@@ -41,13 +41,13 @@ var Decrypt = &cobra.Command{
 		svc := secretsmanager.New(session)
 
 		// Build Get Secrets Value input
-		input := secretsmanager.GetSecretValueInput{
+		input := &secretsmanager.GetSecretValueInput{
 			SecretId: aws.String(keyName),
 		}
 
 		// Get Secrets Value
 		log.Info("Retrieving Secret Key")
-		result, err := svc.GetSecretValue(&input)
+		result, err := svc.GetSecretValue(input)
 		if err != nil {
 			log.WithFields(logrus.Fields{
 				"error": err.Error(),

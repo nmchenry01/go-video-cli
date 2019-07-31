@@ -1,19 +1,22 @@
-package cmd
+package key
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	rootCmd.AddCommand(genKey)
-
-	genKey.SetUsageTemplate("Example Usage:\n" + "\tgo-video-cli genKey [KEY] [KEYNAME] [REGION]\n")
+	GenKey.SetUsageTemplate("Example Usage:\n" + "\tgo-video-cli genKey [KEY] [KEYNAME] [REGION]\n")
 }
 
-var genKey = &cobra.Command{
+var GenKey = &cobra.Command{
 	Use:   "genKey",
 	Short: "Update the key being used to encrypt and decrypt files for the CLI",
 	Long:  "Update the key being used to encrypt and decrypt files for the CLI by providing a key, the name of the key, and the region",
@@ -26,7 +29,9 @@ var genKey = &cobra.Command{
 
 		// Create AWS Session
 		log.Info("Creating AWS Session")
-		session := createAWSSession(region)
+		session := session.Must(session.NewSession(&aws.Config{
+			Region: aws.String(region)}),
+		)
 
 		// Hash the key
 		log.Info("Hashing the Key")
@@ -36,7 +41,10 @@ var genKey = &cobra.Command{
 		svc := secretsmanager.New(session)
 
 		// Generate Secret Input
-		input := buildPutSecretInput(hashedKey, keyName)
+		input := &secretsmanager.PutSecretValueInput{
+			SecretId:     aws.String(keyName),
+			SecretString: aws.String(hashedKey),
+		}
 
 		// Upload to Secrets Manager
 		log.Info("Uploading Key to Secrets Manager")
@@ -46,16 +54,17 @@ var genKey = &cobra.Command{
 	},
 }
 
-func buildPutSecretInput(hashedKey string, keyName string) *secretsmanager.PutSecretValueInput {
-	input := &secretsmanager.PutSecretValueInput{
-		SecretId:     aws.String(keyName),
-		SecretString: aws.String(hashedKey),
-	}
-
-	return input
-}
-
 func putSecret(svc *secretsmanager.SecretsManager, input *secretsmanager.PutSecretValueInput) {
 	_, err := svc.PutSecretValue(input)
-	check(err, "There was an issue uploading to Secrets Manager")
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal("Failed to upload secret")
+	}
+}
+
+func createHash(key string) string {
+	h := md5.New()
+	h.Write([]byte(key))
+	return hex.EncodeToString(h.Sum(nil))
 }

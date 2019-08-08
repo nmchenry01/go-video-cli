@@ -1,4 +1,4 @@
-package cmd
+package upload
 
 import (
 	"fmt"
@@ -8,16 +8,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/cheggaaa/pb"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	rootCmd.AddCommand(upload)
-	upload.SetUsageTemplate("Example Usage:\n" + "\tgo-video-cli upload [FILEPATH] [S3BUCKET] [REGION] [KEYNAME]\n")
+	Upload.SetUsageTemplate("Example Usage:\n" + "\tgo-video-cli upload [FILEPATH] [S3BUCKET] [REGION] [KEYNAME]\n")
 }
 
-var upload = &cobra.Command{
+var Upload = &cobra.Command{
 	Use:   "upload",
 	Short: "Upload a file to an S3 bucket",
 	Long:  "Upload a file to an S3 bucket given the path to the file, the bucket name, a key name",
@@ -68,11 +68,17 @@ func createAWSSession(region string) *session.Session {
 
 func readFile(filepath string) (*customReader, *pb.ProgressBar) {
 	file, err := os.Open(filepath)
-	check(err, "There was an issue reading the file")
-
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal("Failed to read file")
+	}
 	fileInfo, err := file.Stat()
-	check(err, "There was an issue retrieving file stats")
-
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal("Failed to retrieve file stats")
+	}
 	limit := convertBytesToMb(int(fileInfo.Size()))
 	bar := createProgressBar(limit)
 
@@ -106,7 +112,11 @@ func buildUploadInput(bucket string, key string, file *customReader) *s3manager.
 
 func uploadToS3(uploader *s3manager.Uploader, input *s3manager.UploadInput) {
 	_, err := uploader.Upload(input)
-	check(err, "There was an issue uploading the file to S3")
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal("Failed to upload to S3")
+	}
 }
 
 func createProgressBar(fileSize int) *pb.ProgressBar {

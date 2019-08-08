@@ -7,6 +7,8 @@ import (
 	"github.com/nmchenry/go-video-cli/cmd/key"
 
 	"github.com/nmchenry/go-video-cli/cmd/encrypt"
+	"github.com/nmchenry/go-video-cli/cmd/upload"
+
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -18,6 +20,7 @@ func init() {
 	rootCmd.AddCommand(encrypt.Encrypt)
 	rootCmd.AddCommand(decrypt.Decrypt)
 	rootCmd.AddCommand(key.GenKey)
+	rootCmd.AddCommand(upload.Upload)
 }
 
 var rootCmd = &cobra.Command{
@@ -52,8 +55,4 @@ func getSecret(svc *secretsmanager.SecretsManager, input *secretsmanager.GetSecr
 	check(err, "There was an issue retrieving the secret from Secrets Manager")
 
 	return *result.SecretString
-}
-
-func convertBytesToMb(bytes int) int {
-	return bytes / 1024 / 1024
 }
